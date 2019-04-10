@@ -57,6 +57,7 @@ public class RamadanTimeCollector extends Thread{
     }
 
     void createRamadanDataList(String response) {
+
         Document doc = null;
         doc = Jsoup.parse(response);
         Elements rows = doc.select(".row-body");

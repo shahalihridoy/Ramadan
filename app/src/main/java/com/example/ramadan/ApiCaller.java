@@ -117,7 +117,7 @@ public class ApiCaller {
                             for (int i=0; i<jsonArray.length(); i++) {
                                 jsonObject = jsonArray.getJSONObject(i).getJSONObject("timings");
                                 PrayerTime prayerTime = new PrayerTime();
-                                prayerTime.date = jsonArray.getJSONObject(0).getJSONObject("date").getJSONObject("gregorian").getString("date");
+                                prayerTime.date = jsonArray.getJSONObject(i).getJSONObject("date").getJSONObject("gregorian").getString("date");
                                 System.out.println(prayerTime.date);
                                 prayerTime.sunrise = convert24hTo12h(jsonObject.getString("Sunrise"));
                                 System.out.println(prayerTime.sunrise);
