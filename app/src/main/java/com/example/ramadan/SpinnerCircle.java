@@ -18,6 +18,7 @@ public class SpinnerCircle {
         progressDialog.setMessage(message);
         progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
         progressDialog.setIndeterminate(true);
+        progressDialog.setCancelable(false);
         progressDialog.show();
     }
 }

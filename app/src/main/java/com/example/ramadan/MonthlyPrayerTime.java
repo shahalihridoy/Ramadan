@@ -21,14 +21,17 @@ import java.util.List;
 public class MonthlyPrayerTime extends Fragment {
 
     ListView namajListView;
+    private TextView addressView;
 
     LayoutInflater layoutInflater;
     LocationTracker locationTracker;
     SpinnerCircle spinner;
     String address;
 
+    boolean isViewCreated = false;
+
     NamajListAdapter namajListAdapter;
-    List<ApiCaller.PrayerTime> dataList;
+    List<DataFormatter.PrayerTime> dataList;
 
     static Double lat,lon;
     Boolean isLocationTracked = false;
@@ -50,68 +53,26 @@ public class MonthlyPrayerTime extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-//        setting activity to portrait
+        isViewCreated = true;
         init();
+        getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
     }
 
     public void init() {
+        layoutInflater = getLayoutInflater();
+        namajListAdapter = new NamajListAdapter();
+        DataFormatter dataFormatter = new DataFormatter(getContext());
+
+        dataList = dataFormatter.getMonthlyPrayerData();
+
+        addressView = (TextView) getView().findViewById(R.id.address);
+        addressView.setText(dataFormatter.getAdress());
 
         namajListView = getView().findViewById(R.id.list_view);
-        spinner = new SpinnerCircle(getContext());
-        layoutInflater = getLayoutInflater();
-
-        final ApiCaller apiCaller =  new ApiCaller(getContext(), new ApiCaller.PrayerTimeCallback() {
-            @Override
-            public void onDailyPrayerTimeRecieved(List<String> data) {
-
-            }
-
-            @Override
-            public void onMonthlyPrayerTimeRecieved(List<ApiCaller.PrayerTime> data) {
-                dataList = data;
-                namajListAdapter = new NamajListAdapter();
-                setDataToList();
-                spinner.progressDialog.dismiss();
-            }
-
-            @Override
-            public void onError() {
-                spinner.progressDialog.dismiss();
-                Toast.makeText(getContext(),"Check internet connection. Trying again",Toast.LENGTH_LONG).show();
-
-            }
-        });
-
-
-//        fetching data with a new thread
-        Thread locationTrackerThread = new Thread() {
-            @Override
-            public void run() {
-                locationTracker = new LocationTracker(getContext(),
-                        new LocationTracker.LocationTrackerCallback() {
-                            @Override
-                            public void onLocationTracked(Double latitude, Double longitude, String addres) {
-                                lat = latitude;
-                                lon = longitude;
-                                address = addres;
-                                isLocationTracked = true;
-                                apiCaller.getMonthlyPrayerTime(latitude,longitude);
-                            }
-                        });
-                locationTracker.startLocationUpdates();
-            }
-        };
-
-        if(!isLocationTracked) {
-            spinner.spin("Loading...","Fetching Data");
-            locationTrackerThread.start();
-        } else setDataToList();
-
-    }
-
-    void setDataToList() {
         namajListView.setAdapter(namajListAdapter);
+
     }
+
 
     class NamajListAdapter extends BaseAdapter {
 
@@ -177,7 +138,7 @@ public class MonthlyPrayerTime extends Fragment {
 
     @Override
     public void onDetach() {
-//        getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+        getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         super.onDetach();
     }
 

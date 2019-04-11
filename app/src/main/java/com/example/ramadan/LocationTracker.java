@@ -51,9 +51,10 @@ public class LocationTracker {
 
 
     // location updates interval - 10sec
-    private static final long UPDATE_INTERVAL_IN_MILLISECONDS = 10000;
+    private static final long UPDATE_INTERVAL_IN_MILLISECONDS = 1000*60*60;
     private static final long FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS = 5000;
     private static final int REQUEST_CHECK_SETTINGS = 100;
+    private static final int SMALLES_DISTANCE = 250000;
 
 
     // bunch of location related apis
@@ -90,27 +91,27 @@ public class LocationTracker {
                 currentLocaiton = locationResult.getLastLocation();
 
                 if(currentLocaiton != null){
-                    System.out.println("==============init()==============");
-                    System.out.println(currentLocaiton.getLatitude());
-
-                    com.luckycatlabs.sunrisesunset.dto.Location location = new com.luckycatlabs.sunrisesunset.dto.Location(currentLocaiton.getLatitude(),currentLocaiton.getLongitude());
-                    SunriseSunsetCalculator calculator = new SunriseSunsetCalculator(location, TimeZone.getDefault());
-
-
-                    Calendar calendar = Calendar.getInstance();
-                    calendar.set(2019,05,07); // this is for custom date
-
-                    String officialSunrise = calculator.getOfficialSunriseForDate(calendar);
-                    String officialSunset = calculator.getOfficialSunsetForDate(calendar);
-                    Calendar sunset = calculator.getOfficialSunriseCalendarForDate(calendar);
-
-                    String time = DateUtils.formatDateTime(context, (sunset.getTimeInMillis()-3590170), DateUtils.FORMAT_SHOW_TIME);
-
-                    System.out.println(time);
-                    System.out.println("==================================");
-                    System.out.println(officialSunrise);
-                    System.out.println(officialSunset);
-                    System.out.println("==================================");
+//                    System.out.println("==============init()==============");
+//                    System.out.println(currentLocaiton.getLatitude());
+//
+//                    com.luckycatlabs.sunrisesunset.dto.Location location = new com.luckycatlabs.sunrisesunset.dto.Location(currentLocaiton.getLatitude(),currentLocaiton.getLongitude());
+//                    SunriseSunsetCalculator calculator = new SunriseSunsetCalculator(location, TimeZone.getDefault());
+//
+//
+//                    Calendar calendar = Calendar.getInstance();
+//                    calendar.set(2019,05,07); // this is for custom date
+//
+//                    String officialSunrise = calculator.getOfficialSunriseForDate(calendar);
+//                    String officialSunset = calculator.getOfficialSunsetForDate(calendar);
+//                    Calendar sunset = calculator.getOfficialSunriseCalendarForDate(calendar);
+//
+//                    String time = DateUtils.formatDateTime(context, (sunset.getTimeInMillis()-3590170), DateUtils.FORMAT_SHOW_TIME);
+//
+//                    System.out.println(time);
+//                    System.out.println("==================================");
+//                    System.out.println(officialSunrise);
+//                    System.out.println(officialSunset);
+//                    System.out.println("==================================");
 
                     try {
                         Geocoder geocoder;
@@ -126,12 +127,12 @@ public class LocationTracker {
 //                        String postalCode = addresses.get(0).getPostalCode();
 //                        String knownName = addresses.get(0).getFeatureName();
 
-                        System.out.println(country);
-                        System.out.println(city);
+//                        System.out.println(country);
+//                        System.out.println(city);
 //                        System.out.println(address);
 
                         locationTrackerCallback.onLocationTracked(currentLocaiton.getLatitude(),currentLocaiton.getLongitude(),city+", "+country);
-                        stopLocationUpdates();
+
 
                     } catch (Exception e) {
                         Toast.makeText(context,"Check internet connection and try again",Toast.LENGTH_SHORT).show();
@@ -146,6 +147,7 @@ public class LocationTracker {
         locationRequest.setInterval(UPDATE_INTERVAL_IN_MILLISECONDS);
         locationRequest.setFastestInterval(FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS);
         locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        locationRequest.setSmallestDisplacement(SMALLES_DISTANCE);
 
         LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder();
         builder.addLocationRequest(locationRequest);
@@ -167,11 +169,6 @@ public class LocationTracker {
                         fusedLocationProviderClient.requestLocationUpdates(locationRequest,
                                 locationCallback, Looper.myLooper());
 
-                        if(currentLocaiton != null){
-                            System.out.println("==============start()==============");
-                            System.out.println(currentLocaiton.getLatitude());
-                        }
-//                        updateLocationUI();
                     }
                 })
                 .addOnFailureListener((Activity) context, new OnFailureListener() {
@@ -197,10 +194,6 @@ public class LocationTracker {
 
                                 Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show();
                         }
-
-                        System.out.println("==================================");
-                        System.out.println("failed to load locaiton");
-
                     }
                 });
     }

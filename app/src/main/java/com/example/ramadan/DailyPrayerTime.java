@@ -1,7 +1,6 @@
 package com.example.ramadan;
 
 import android.os.Bundle;
-import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -28,6 +27,10 @@ public class DailyPrayerTime extends Fragment {
     SpinnerCircle spinner;
     String address;
 
+    boolean isViewCreated = false;
+
+    DataFormatter dataFormatter;
+
     static Double lat,lon;
     Boolean isLocationTracked = false;
 
@@ -38,7 +41,7 @@ public class DailyPrayerTime extends Fragment {
     Gson gson;
 
     int[] icon = {R.drawable.ic_menu_send,R.drawable.ic_menu_gallery,R.drawable.ic_menu_camera,R.drawable.ic_menu_gallery,R.drawable.ic_menu_camera};
-    String[] names = {"Fajr","Juhor","Asr","Magrib","Isha"};
+    String[] prayerNames = {"Fajr","Juhor","Asr","Magrib","Isha"};
 
     public DailyPrayerTime() {
         // Required empty public constructor
@@ -54,74 +57,33 @@ public class DailyPrayerTime extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        isViewCreated = true;
         init();
     }
 
     public void init() {
 
-        spinner = new SpinnerCircle(getContext());
         layoutInflater = getLayoutInflater();
+        dataFormatter = new DataFormatter(getContext());
+        namajListAdapter = new NamajListAdapter();
 
         namajListView = (ListView) getView().findViewById(R.id.list_view);
         addressView = (TextView) getView().findViewById(R.id.address);
 
-        final ApiCaller apiCaller =  new ApiCaller(getContext(), new ApiCaller.PrayerTimeCallback() {
-            @Override
-            public void onDailyPrayerTimeRecieved(List<String> data) {
-                prayerTime = data;
-                namajListAdapter = new NamajListAdapter();
-                setDataToList();
-                spinner.progressDialog.dismiss();
-            }
+        prayerTime = dataFormatter.getDailyPrayerData();
+        address = dataFormatter.getAdress();
 
-            @Override
-            public void onMonthlyPrayerTimeRecieved(List<ApiCaller.PrayerTime> data) {
-
-            }
-
-            @Override
-            public void onError() {
-                spinner.progressDialog.dismiss();
-            }
-        });
-
-
-//        fetching data with a new thread
-        Thread locationTrackerThread = new Thread() {
-            @Override
-            public void run() {
-                locationTracker = new LocationTracker(getContext(),
-                        new LocationTracker.LocationTrackerCallback() {
-                            @Override
-                            public void onLocationTracked(Double latitude, Double longitude, String addres) {
-                                lat = latitude;
-                                lon = longitude;
-                                address = addres;
-                                isLocationTracked = true;
-                                apiCaller.getDailyPrayerTime(latitude,longitude);
-                            }
-                        });
-                locationTracker.startLocationUpdates();
-            }
-        };
-
-        if(!isLocationTracked) {
-            spinner.spin("Loading...","Fetching Data");
-            locationTrackerThread.start();
-        } else setDataToList();
-
-    }
-
-    void setDataToList() {
         addressView.setText(address);
         namajListView.setAdapter(namajListAdapter);
+
     }
+
 
     class NamajListAdapter extends BaseAdapter {
 
         @Override
         public int getCount() {
-            return names.length;
+            return prayerNames.length;
         }
 
         @Override
@@ -144,7 +106,7 @@ public class DailyPrayerTime extends Fragment {
             viewHelper.prayerIcon = (ImageView) view.findViewById(R.id.prayer_icon);
             viewHelper.prayerTime = (TextView) view.findViewById(R.id.prayer_time);
 
-            viewHelper.prayerName.setText(names[position]);
+            viewHelper.prayerName.setText(prayerNames[position]);
             viewHelper.prayerIcon.setImageResource(icon[position]);
             viewHelper.prayerTime.setText(prayerTime.get(position));
 

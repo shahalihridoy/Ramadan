@@ -6,6 +6,14 @@
     android:orientation="vertical"
     tools:context=".MonthlyPrayerTime">
 
+    <TextView
+        android:id="@+id/address"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingBottom="3dp"
+        android:gravity="end"
+        android:text="Dhaka, Bangladesh" />
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

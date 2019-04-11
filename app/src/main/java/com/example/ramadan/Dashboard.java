@@ -6,6 +6,8 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.widget.CardView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,6 +15,9 @@ import android.view.ViewGroup;
 
 
 public class Dashboard extends Fragment {
+
+    FragmentManager fragmentManager;
+    FragmentTransaction fragmentTransaction;
 
     public Dashboard() {
         // Required empty public constructor
@@ -51,22 +56,22 @@ public class Dashboard extends Fragment {
                 System.out.println(v.getId());
                 switch (v.getId()) {
                     case R.id.ramadan:
-                        MainActivity.fragmentManager = getActivity().getSupportFragmentManager();
-                        MainActivity.fragmentTransaction = MainActivity.fragmentManager.beginTransaction();
-                        MainActivity.fragmentTransaction.replace(R.id.fragmentContainer, MainActivity.ramadanTime);
-                        MainActivity.fragmentTransaction.addToBackStack(MainActivity.ramadanTime.toString()).commit();
+                        fragmentManager = getActivity().getSupportFragmentManager();
+                        fragmentTransaction = fragmentManager.beginTransaction();
+                        fragmentTransaction.replace(R.id.fragmentContainer, MainActivity.ramadanTime);
+                        fragmentTransaction.commit();
                         break;
                     case R.id.dailyPrayer:
-                        MainActivity.fragmentManager = getActivity().getSupportFragmentManager();
-                        MainActivity.fragmentTransaction = MainActivity.fragmentManager.beginTransaction();
-                        MainActivity.fragmentTransaction.replace(R.id.fragmentContainer, MainActivity.dailyPrayerTime);
-                        MainActivity.fragmentTransaction.addToBackStack(MainActivity.dailyPrayerTime.toString()).commit();
+                        fragmentManager = getActivity().getSupportFragmentManager();
+                        fragmentTransaction = fragmentManager.beginTransaction();
+                        fragmentTransaction.replace(R.id.fragmentContainer, MainActivity.dailyPrayerTime);
+                        fragmentTransaction.commit();
                         break;
                     case R.id.monthlyPrayer:
-                        MainActivity.fragmentManager = getActivity().getSupportFragmentManager();
-                        MainActivity.fragmentTransaction = MainActivity.fragmentManager.beginTransaction();
-                        MainActivity.fragmentTransaction.replace(R.id.fragmentContainer, MainActivity.monthlyPrayerTime);
-                        MainActivity.fragmentTransaction.addToBackStack(MainActivity.monthlyPrayerTime.toString()).commit();
+                        fragmentManager = getActivity().getSupportFragmentManager();
+                        fragmentTransaction = fragmentManager.beginTransaction();
+                        fragmentTransaction.replace(R.id.fragmentContainer, MainActivity.monthlyPrayerTime);
+                        fragmentTransaction.commit();
                         break;
                     default:
                         break;

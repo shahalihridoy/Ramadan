@@ -21,7 +21,6 @@ public class RamadanTimeCollector extends Thread{
 
     Context context;
     RamadanCallback ramadanCallback;
-    List<RamadanData> ramadanDataList = new ArrayList<>();
 
     RamadanTimeCollector(Context context, RamadanCallback ramadanCallback) {
         this.context = context;
@@ -40,64 +39,24 @@ public class RamadanTimeCollector extends Thread{
                     @Override
                     public void onResponse(String response) {
                         try {
-                            createRamadanDataList(response);
-                            ramadanCallback.onRamadanDataListRecieved(ramadanDataList);
+                            ramadanCallback.onRamadanDataListRecieved(response);
                         } catch (Exception e) {
-                            e.printStackTrace();
+                            ramadanCallback.onError();
                         }
                     }
                 }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                error.printStackTrace();
+                ramadanCallback.onError();
             }
         });
 
         queue.add(stringRequest);
     }
 
-    void createRamadanDataList(String response) {
-
-        Document doc = null;
-        doc = Jsoup.parse(response);
-        Elements rows = doc.select(".row-body");
-
-        List<String> temp = new ArrayList<>();
-
-        for (Element row : rows) {
-            temp.clear();
-            int i=1;
-            for (Element data: row.select("td")) {
-                if(i==2 || i==3 || i==6)
-                    temp.add(data.text());
-                i++;
-            }
-
-            RamadanData ramadanData = new RamadanData(
-                    temp.get(0),
-                    temp.get(1),
-                    temp.get(2)
-            );
-
-            ramadanDataList.add(ramadanData);
-        }
-    }
-
-
-    public class RamadanData {
-        String date;
-        String iftar;
-        String sehri;
-
-        RamadanData(String date, String sehri, String iftar) {
-            this.date = date;
-            this.sehri = sehri;
-            this.iftar = iftar;
-        }
-    }
-
     public interface RamadanCallback {
-        public void onRamadanDataListRecieved(List<RamadanData> ramadanDataList);
+        public void onRamadanDataListRecieved(String response);
+        public void onError();
     }
 
 }

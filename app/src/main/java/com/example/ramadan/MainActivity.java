@@ -1,7 +1,8 @@
 package com.example.ramadan;
 
-import android.net.Uri;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.design.widget.NavigationView;
@@ -9,25 +10,35 @@ import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.CardView;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.widget.ScrollView;
+import android.widget.Toast;
+
+import java.util.Timer;
 
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener{
-    
+        implements NavigationView.OnNavigationItemSelectedListener {
 
-    static FragmentManager fragmentManager;
-    static FragmentTransaction fragmentTransaction;
+
+    FragmentManager fragmentManager;
+    FragmentTransaction fragmentTransaction;
     int fragmentContainer;
 
     static MonthlyPrayerTime monthlyPrayerTime;
     static DailyPrayerTime dailyPrayerTime;
     static RamadanTime ramadanTime;
     static Dashboard dashboard;
+
+    LocationTracker locationTracker;
+    SpinnerCircle spinnerCircle = null;
+
+    SharedPreferences.Editor editor;
+    SharedPreferences preferences;
+    private static final String MY_PREFS_NAME = "Ramadan";
+    String address;
+
+    Double lat,lon;
 
 
     @Override
@@ -46,10 +57,10 @@ public class MainActivity extends AppCompatActivity
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
-        getElements();
+        init();
     }
 
-    void getElements() {
+    void init() {
         fragmentManager = getSupportFragmentManager();
         fragmentTransaction = fragmentManager.beginTransaction();
         fragmentContainer = R.id.fragmentContainer;
@@ -59,9 +70,88 @@ public class MainActivity extends AppCompatActivity
         ramadanTime = new RamadanTime();
         monthlyPrayerTime = new MonthlyPrayerTime();
 
-        fragmentTransaction.replace(fragmentContainer,dashboard).addToBackStack(dashboard.toString()).commit();
+        preferences = getSharedPreferences(MY_PREFS_NAME, MODE_PRIVATE);
+        editor = getSharedPreferences(MY_PREFS_NAME, MODE_PRIVATE).edit();
+
+        fragmentTransaction.replace(fragmentContainer, dashboard).commit();
+
+        if(!preferences.contains("address")) {
+            spinnerCircle = new SpinnerCircle(this);
+            spinnerCircle.spin("Loading...","Fetching data");
+        }
+        new Thread() {
+            @Override
+            public void run() {
+                getRequiredData();
+            }
+        }.start();
+
     }
 
+    void getRequiredData() {
+
+        final ApiCaller apiCaller = new ApiCaller(this, new ApiCaller.PrayerTimeCallback() {
+            @Override
+            public void onDailyPrayerTimeRecieved(String response) {
+                editor.putString("daily", response);
+                editor.commit();
+
+//                notify daily prayer fragment
+                if(dailyPrayerTime.isViewCreated)
+                    dailyPrayerTime.init();
+            }
+
+            @Override
+            public void onMonthlyPrayerTimeRecieved(String response) {
+                editor.putString("monthly",response);
+                editor.commit();
+
+//                notify daily prayer fragment
+                if(monthlyPrayerTime.isViewCreated)
+                    monthlyPrayerTime.init();
+            }
+
+            @Override
+            public void onError() {
+                Toast.makeText(MainActivity.this, "Check GPS and internet connection for data update",Toast.LENGTH_LONG).show();
+            }
+        });
+
+        locationTracker = new LocationTracker(this, new LocationTracker.LocationTrackerCallback() {
+            @Override
+            public void onLocationTracked(Double latitude, Double longitude, String address) {
+
+                editor.putString("address",address);
+                editor.commit();
+
+                apiCaller.getDailyPrayerTime(latitude,longitude);
+                apiCaller.getMonthlyPrayerTime(latitude,longitude);
+
+                new RamadanTimeCollector(MainActivity.this, new RamadanTimeCollector.RamadanCallback() {
+                    @Override
+                    public void onRamadanDataListRecieved(String response) {
+                        editor.putString("ramadan",response);
+                        editor.commit();
+
+//                        dismiss spinner if exists
+                        if (spinnerCircle != null)
+                            spinnerCircle.progressDialog.dismiss();
+
+//                        notify ramadan fragment
+                        if(ramadanTime.isViewCreated)
+                            ramadanTime.init();
+                    }
+
+                    @Override
+                    public void onError() {
+                        Toast.makeText(MainActivity.this,"Check internet connection for data update",Toast.LENGTH_LONG).show();
+                    }
+                });
+            }
+        });
+
+        locationTracker.startLocationUpdates();
+    }
 
     @Override
     public void onBackPressed() {
@@ -105,21 +195,21 @@ public class MainActivity extends AppCompatActivity
 
             fragmentManager = getSupportFragmentManager();
             fragmentTransaction = fragmentManager.beginTransaction();
-            fragmentTransaction.replace(R.id.fragmentContainer, dailyPrayerTime).addToBackStack(dailyPrayerTime.toString());
+            fragmentTransaction.replace(R.id.fragmentContainer, dailyPrayerTime);
             fragmentTransaction.commit();
 
         } else if (id == R.id.nav_gallery) {
 
             fragmentManager = getSupportFragmentManager();
             fragmentTransaction = fragmentManager.beginTransaction();
-            fragmentTransaction.replace(R.id.fragmentContainer, ramadanTime).addToBackStack(dailyPrayerTime.toString());
+            fragmentTransaction.replace(R.id.fragmentContainer, ramadanTime);
             fragmentTransaction.commit();
 
         } else if (id == R.id.nav_slideshow) {
 
             fragmentManager = getSupportFragmentManager();
             fragmentTransaction = fragmentManager.beginTransaction();
-            fragmentTransaction.replace(R.id.fragmentContainer, monthlyPrayerTime).addToBackStack(dailyPrayerTime.toString());
+            fragmentTransaction.replace(R.id.fragmentContainer, monthlyPrayerTime);
             fragmentTransaction.commit();
 
         } else if (id == R.id.nav_manage) {
@@ -143,11 +233,14 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onPause() {
         super.onPause();
+        locationTracker.startLocationUpdates();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
+        locationTracker.startLocationUpdates();
     }
+
 
 }

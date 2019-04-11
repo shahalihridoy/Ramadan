@@ -1,7 +1,6 @@
 package com.example.ramadan;
 
 import android.content.Context;
-import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -18,16 +17,16 @@ import java.util.List;
 
 public class RamadanTime extends Fragment {
 
-    List<RamadanTimeCollector.RamadanData> dataList;
-    Boolean isDataLoaded = false;
-    SpinnerCircle spinner;
     ListView listView;
+    TextView addressView;
     RamadanTimeAdapter ramadanTimeAdapter;
+    List<DataFormatter.RamadanData> ramadanDataList;
+
+    boolean isViewCreated = false;
 
     public RamadanTime() {
         // Required empty public constructor
     }
-
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -40,42 +39,21 @@ public class RamadanTime extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 //        getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+        isViewCreated = true;
         init();
     }
 
-    private void init() {
+    public void init() {
+        DataFormatter dataFormatter = new DataFormatter(getContext());
+        ramadanDataList = dataFormatter.getRamadanDataList();
+        ramadanTimeAdapter = new RamadanTimeAdapter();
 
-        spinner = new SpinnerCircle(getContext());
+        addressView = (TextView) getView().findViewById(R.id.address);
+        addressView.setText(dataFormatter.getAdress());
 
-        Thread t = new Thread() {
-            @Override
-            public void run() {
-                super.run();
-                new RamadanTimeCollector(getContext(), new RamadanTimeCollector.RamadanCallback() {
-                    @Override
-                    public void onRamadanDataListRecieved(List<RamadanTimeCollector.RamadanData> ramadanDataList) {
-                        dataList = ramadanDataList;
-                        isDataLoaded = true;
-                        ramadanTimeAdapter = new RamadanTimeAdapter();
-                        setDataToList();
-                        spinner.progressDialog.dismiss();
-                    }
-                });
-            }
-        };
-
-
-        if(!isDataLoaded) {
-            spinner.spin("Loading...","Fetching data");
-            t.start();
-
-        } else setDataToList();
-
-    }
-
-    void setDataToList() {
         listView = (ListView) getView().findViewById(R.id.list_view);
         listView.setAdapter(ramadanTimeAdapter);
+
     }
 
     @Override
@@ -94,12 +72,12 @@ public class RamadanTime extends Fragment {
 
         @Override
         public int getCount() {
-            return dataList.size();
+            return ramadanDataList.size();
         }
 
         @Override
         public Object getItem(int position) {
-            return dataList.get(position);
+            return ramadanDataList.get(position);
         }
 
         @Override
@@ -119,9 +97,9 @@ public class RamadanTime extends Fragment {
             vh.iftar = view.findViewById(R.id.iftar);
 
             vh.serial.setText(Integer.toString(position+1));
-            vh.date.setText(dataList.get(position).date);
-            vh.sehri.setText(dataList.get(position).sehri);
-            vh.iftar.setText(dataList.get(position).iftar);
+            vh.date.setText(ramadanDataList.get(position).date);
+            vh.sehri.setText(ramadanDataList.get(position).sehri);
+            vh.iftar.setText(ramadanDataList.get(position).iftar);
 
             return view;
         }
