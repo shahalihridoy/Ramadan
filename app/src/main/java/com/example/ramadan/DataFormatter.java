@@ -47,15 +47,21 @@ public class DataFormatter {
             return dailyPrayerTimeList;
 
         response = preferences.getString("daily","");
+        String date="";
 
         try {
-            JSONObject jsonObject = new JSONObject(response).getJSONObject("data").getJSONObject("timings");
-            dailyPrayerTimeList.add(convert24hTo12h(jsonObject.getString("Fajr")));
-            dailyPrayerTimeList.add(convert24hTo12h(jsonObject.getString("Dhuhr")));
-            dailyPrayerTimeList.add(convert24hTo12h(jsonObject.getString("Asr")));
-            dailyPrayerTimeList.add(convert24hTo12h(jsonObject.getString("Maghrib")));
-            dailyPrayerTimeList.add(convert24hTo12h(jsonObject.getString("Isha")));
+            JSONObject jsonObject = new JSONObject(response).getJSONObject("data");
 
+            date = jsonObject.getJSONObject("date").getString("readable");
+
+            jsonObject = jsonObject.getJSONObject("timings");
+
+            dailyPrayerTimeList.add(0,convert24hTo12h(jsonObject.getString("Fajr")));
+            dailyPrayerTimeList.add(1,convert24hTo12h(jsonObject.getString("Dhuhr")));
+            dailyPrayerTimeList.add(2,convert24hTo12h(jsonObject.getString("Asr")));
+            dailyPrayerTimeList.add(3,convert24hTo12h(jsonObject.getString("Maghrib")));
+            dailyPrayerTimeList.add(4,convert24hTo12h(jsonObject.getString("Isha")));
+            dailyPrayerTimeList.add(5,date);
         } catch (JSONException e) {
             e.printStackTrace();
         }

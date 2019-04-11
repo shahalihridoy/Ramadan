@@ -233,13 +233,13 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onPause() {
         super.onPause();
-        locationTracker.startLocationUpdates();
+//        locationTracker.startLocationUpdates();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        locationTracker.startLocationUpdates();
+//        locationTracker.startLocationUpdates();
     }
 
 

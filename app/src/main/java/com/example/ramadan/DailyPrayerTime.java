@@ -21,24 +21,19 @@ public class DailyPrayerTime extends Fragment {
 
     ListView namajListView;
     TextView addressView;
+    TextView dateView;
 
     LayoutInflater layoutInflater;
-    LocationTracker locationTracker;
-    SpinnerCircle spinner;
+
     String address;
 
     boolean isViewCreated = false;
 
     DataFormatter dataFormatter;
 
-    static Double lat,lon;
-    Boolean isLocationTracked = false;
-
     NamajListAdapter namajListAdapter;
 
     List<String> prayerTime;
-
-    Gson gson;
 
     int[] icon = {R.drawable.ic_menu_send,R.drawable.ic_menu_gallery,R.drawable.ic_menu_camera,R.drawable.ic_menu_gallery,R.drawable.ic_menu_camera};
     String[] prayerNames = {"Fajr","Juhor","Asr","Magrib","Isha"};
@@ -50,7 +45,6 @@ public class DailyPrayerTime extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        prayerTime = MainActivity.dailyPrayerTime.prayerTime;
     }
 
     @Override
@@ -67,11 +61,14 @@ public class DailyPrayerTime extends Fragment {
         dataFormatter = new DataFormatter(getContext());
         namajListAdapter = new NamajListAdapter();
 
+        prayerTime = dataFormatter.getDailyPrayerData();
+        address = dataFormatter.getAdress();
+
         namajListView = (ListView) getView().findViewById(R.id.list_view);
         addressView = (TextView) getView().findViewById(R.id.address);
 
-        prayerTime = dataFormatter.getDailyPrayerData();
-        address = dataFormatter.getAdress();
+        dateView = (TextView) getView().findViewById(R.id.date);
+        dateView.setText(prayerTime.get(5));
 
         addressView.setText(address);
         namajListView.setAdapter(namajListAdapter);

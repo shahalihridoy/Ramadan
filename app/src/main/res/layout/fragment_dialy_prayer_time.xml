@@ -7,6 +7,15 @@
     android:orientation="vertical"
     tools:context=".DailyPrayerTime">
 
+    <TextView
+        android:id="@+id/date"
+        android:text="date"
+        android:gravity="center"
+        android:layout_width="match_parent"
+        android:layout_marginBottom="3dp"
+        android:layout_height="wrap_content" />
+
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
